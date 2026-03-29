@@ -51,6 +51,27 @@ header h1 {
     font-weight: 700;
 }
 
+.header-id {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    background: rgba(0,0,0,0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#header-my-id {
+    font-family: monospace;
+}
+
+#header-copy-btn {
+    background: none;
+    padding: 0;
+    font-size: 1rem;
+}
+
 #status {
     font-size: 0.75rem;
     margin-top: 0.25rem;
@@ -60,9 +81,47 @@ header h1 {
 main {
     flex: 1;
     padding: 1rem;
-    overflow-y: auto;
+    overflow-y: hidden;
     display: flex;
     flex-direction: column;
+}
+
+#sidebar {
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+#sidebar h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}
+
+#peer-list {
+    list-style: none;
+    margin-bottom: 1rem;
+}
+
+.peer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: var(--bg-color);
+    border-radius: 0.25rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.peer-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.peer-status.offline {
+    background: var(--error);
 }
 
 .card {

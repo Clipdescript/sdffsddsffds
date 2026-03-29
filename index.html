@@ -14,31 +14,25 @@
         <header>
             <h1>P2P Chat</h1>
             <div id="status" class="status-indicator">Initialisation...</div>
+            <div class="header-id">
+                ID: <span id="header-my-id">...</span>
+                <button id="header-copy-btn" title="Copier mon ID">📋</button>
+            </div>
         </header>
 
         <main>
-            <!-- Welcome screen -->
-            <section id="welcome-screen">
-                <div class="card">
-                    <h2>Votre ID</h2>
-                    <div class="id-display">
-                        <span id="my-id">Génération...</span>
-                        <button id="copy-id-btn" title="Copier l'ID">📋</button>
-                    </div>
-                    <p class="hint">Partagez cet ID avec votre ami pour qu'il puisse se connecter.</p>
-                </div>
-
-                <div class="card">
-                    <h2>Se connecter</h2>
-                    <div class="connect-form">
-                        <input type="text" id="peer-id-input" placeholder="ID de l'ami">
-                        <button id="connect-btn">Rejoindre</button>
-                    </div>
+            <!-- Sidebar for connections -->
+            <section id="sidebar" class="card">
+                <h3>Amis connectés</h3>
+                <ul id="peer-list"></ul>
+                <div class="connect-form">
+                    <input type="text" id="peer-id-input" placeholder="ID de l'ami">
+                    <button id="connect-btn">Connecter</button>
                 </div>
             </section>
 
             <!-- Chat screen -->
-            <section id="chat-screen" class="hidden">
+            <section id="chat-screen">
                 <div id="chat-messages"></div>
                 <div class="chat-input-area">
                     <input type="text" id="message-input" placeholder="Écrivez un message...">

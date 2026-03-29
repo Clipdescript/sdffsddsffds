@@ -1,101 +1,150 @@
-// Initialize PeerJS
-const peer = new Peer();
-let conn = null;
+// Persistence keys
+const STORAGE_ID_KEY = 'p2p_chat_my_id';
+const STORAGE_MSGS_KEY = 'p2p_chat_messages';
+const STORAGE_PEERS_KEY = 'p2p_chat_peers';
+
+// Initialize PeerJS with persisted ID if available
+let myId = localStorage.getItem(STORAGE_ID_KEY);
+const peer = new Peer(myId); // Peer will use myId if provided, else generate one
+
+let activeConnections = {}; // Track all active connections by peerId
+let peerList = JSON.parse(localStorage.getItem(STORAGE_PEERS_KEY) || '[]');
 
 // DOM Elements
 const statusEl = document.getElementById('status');
-const myIdEl = document.getElementById('my-id');
-const copyIdBtn = document.getElementById('copy-id-btn');
+const headerMyIdEl = document.getElementById('header-my-id');
+const headerCopyBtn = document.getElementById('header-copy-btn');
 const peerIdInput = document.getElementById('peer-id-input');
 const connectBtn = document.getElementById('connect-btn');
-const welcomeScreen = document.getElementById('welcome-screen');
-const chatScreen = document.getElementById('chat-screen');
+const peerListEl = document.getElementById('peer-list');
 const chatMessages = document.getElementById('chat-messages');
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 
+// --- INITIALIZATION ---
+
+// Load messages from localStorage
+function loadMessages() {
+    const savedMsgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
+    savedMsgs.forEach(msg => {
+        displayMessage(msg.text, msg.type, false);
+    });
+}
+
+// Save message to localStorage
+function saveMessage(text, type) {
+    const savedMsgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
+    savedMsgs.push({ text, type, time: Date.now() });
+    localStorage.setItem(STORAGE_MSGS_KEY, JSON.stringify(savedMsgs));
+}
+
+// Update Peer List UI
+function updatePeerListUI() {
+    peerListEl.innerHTML = '';
+    peerList.forEach(pId => {
+        const li = document.createElement('li');
+        li.className = 'peer-item';
+        const isOnline = activeConnections[pId] && activeConnections[pId].open;
+        li.innerHTML = `
+            <span>${pId.substring(0, 8)}...</span>
+            <span class="peer-status ${isOnline ? '' : 'offline'}"></span>
+        `;
+        peerListEl.appendChild(li);
+    });
+}
+
 // --- PEER EVENTS ---
 
-// When we get our ID from the PeerServer
 peer.on('open', (id) => {
-    myIdEl.innerText = id;
-    statusEl.innerText = 'Prêt à se connecter';
-    statusEl.style.color = 'white';
-
-    // Auto-connect if ID is in URL (e.g., ?peer=XYZ)
-    const urlParams = new URLSearchParams(window.location.search);
-    const peerParam = urlParams.get('peer');
-    if (peerParam) {
-        peerIdInput.value = peerParam;
-        connectToPeer(peerParam);
-    }
+    myId = id;
+    localStorage.setItem(STORAGE_ID_KEY, id);
+    headerMyIdEl.innerText = id.substring(0, 8) + '...';
+    statusEl.innerText = 'En ligne';
+    
+    // Attempt to reconnect to previous peers
+    peerList.forEach(pId => {
+        if (!activeConnections[pId]) {
+            connectToPeer(pId);
+        }
+    });
+    
+    updatePeerListUI();
 });
 
-// When someone tries to connect to us
-peer.on('connection', (connection) => {
-    if (conn) {
-        connection.close(); // Only one connection at a time for simplicity
-        return;
-    }
-    conn = connection;
-    setupConnection();
+// Incoming connections
+peer.on('connection', (conn) => {
+    setupConnection(conn);
 });
 
 peer.on('error', (err) => {
     console.error('Peer error:', err);
     statusEl.innerText = 'Erreur : ' + err.type;
-    statusEl.style.color = '#ffcccc';
 });
 
 // --- CONNECTION LOGIC ---
 
-function connectToPeer(peerId) {
-    if (!peerId) return;
+function connectToPeer(targetId) {
+    if (!targetId || targetId === myId || activeConnections[targetId]) return;
     
-    statusEl.innerText = 'Connexion en cours...';
-    conn = peer.connect(peerId);
-    setupConnection();
+    const conn = peer.connect(targetId);
+    setupConnection(conn);
 }
 
-function setupConnection() {
+function setupConnection(conn) {
     conn.on('open', () => {
-        statusEl.innerText = 'Connecté à : ' + conn.peer;
-        welcomeScreen.classList.add('hidden');
-        chatScreen.classList.remove('hidden');
+        activeConnections[conn.peer] = conn;
+        if (!peerList.includes(conn.peer)) {
+            peerList.push(conn.peer);
+            localStorage.setItem(STORAGE_PEERS_KEY, JSON.stringify(peerList));
+        }
+        statusEl.innerText = 'Connecté';
+        updatePeerListUI();
     });
 
     conn.on('data', (data) => {
-        addMessage(data, 'received');
+        displayMessage(data, 'received', true);
     });
 
     conn.on('close', () => {
-        statusEl.innerText = 'Connexion fermée';
-        chatScreen.classList.add('hidden');
-        welcomeScreen.classList.remove('hidden');
-        conn = null;
+        delete activeConnections[conn.peer];
+        updatePeerListUI();
     });
 
     conn.on('error', (err) => {
         console.error('Connection error:', err);
-        statusEl.innerText = 'Erreur de connexion';
+        delete activeConnections[conn.peer];
+        updatePeerListUI();
     });
 }
 
 // --- UI LOGIC ---
 
-function addMessage(msg, type) {
+function displayMessage(msg, type, save = true) {
     const div = document.createElement('div');
     div.className = `message ${type}`;
     div.innerText = msg;
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    if (save) {
+        saveMessage(msg, type);
+    }
 }
 
-function sendMessage() {
+function broadcastMessage() {
     const msg = messageInput.value.trim();
-    if (msg && conn && conn.open) {
-        conn.send(msg);
-        addMessage(msg, 'sent');
+    if (!msg) return;
+
+    let sent = false;
+    Object.values(activeConnections).forEach(conn => {
+        if (conn.open) {
+            conn.send(msg);
+            sent = true;
+        }
+    });
+
+    if (sent || Object.keys(activeConnections).length === 0) {
+        displayMessage(msg, 'sent', true);
         messageInput.value = '';
     }
 }
@@ -103,25 +152,27 @@ function sendMessage() {
 // --- EVENT LISTENERS ---
 
 connectBtn.addEventListener('click', () => {
-    connectToPeer(peerIdInput.value.trim());
+    const targetId = peerIdInput.value.trim();
+    connectToPeer(targetId);
+    peerIdInput.value = '';
 });
 
-sendBtn.addEventListener('click', sendMessage);
+sendBtn.addEventListener('click', broadcastMessage);
 
 messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
+    if (e.key === 'Enter') broadcastMessage();
 });
 
-copyIdBtn.addEventListener('click', () => {
-    const id = myIdEl.innerText;
-    if (id && id !== 'Génération...') {
-        // Create a shareable URL
-        const shareUrl = `${window.location.origin}${window.location.pathname}?peer=${id}`;
-        
-        navigator.clipboard.writeText(id).then(() => {
-            const originalIcon = copyIdBtn.innerText;
-            copyIdBtn.innerText = '✅';
-            setTimeout(() => copyIdBtn.innerText = originalIcon, 2000);
+headerCopyBtn.addEventListener('click', () => {
+    if (myId) {
+        navigator.clipboard.writeText(myId).then(() => {
+            const originalIcon = headerCopyBtn.innerText;
+            headerCopyBtn.innerText = '✅';
+            setTimeout(() => headerCopyBtn.innerText = originalIcon, 2000);
         });
     }
 });
+
+// Start by loading history
+loadMessages();
+updatePeerListUI();
