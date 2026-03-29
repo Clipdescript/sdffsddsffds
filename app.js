@@ -8,7 +8,7 @@ const STORAGE_USER_KEY = 'p2p_chat_username';
 let myUsername = localStorage.getItem(STORAGE_USER_KEY) || 'Moi';
 let myId = localStorage.getItem(STORAGE_ID_KEY);
 let activeConnections = {}; 
-let peerList = JSON.parse(localStorage.getItem(STORAGE_PEERS_KEY) || []);
+let peerList = JSON.parse(localStorage.getItem(STORAGE_PEERS_KEY) || '[]');
 let currentChatPeerId = null;
 
 // Generate ID if not exists
