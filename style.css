@@ -29,8 +29,8 @@ body {
     height: 100%;
     display: flex;
     position: relative;
-    max-width: 1000px;
-    margin: 0 auto;
+    max-width: none; /* Supprimé pour le plein écran */
+    margin: 0; /* Supprimé pour le plein écran */
     background: white;
 }
 
@@ -273,10 +273,10 @@ body {
 /* Desktop Split-Pane Layout (800px+) */
 @media (min-width: 800px) {
     #app {
-        height: 95vh;
-        margin-top: 2.5vh;
+        height: 100vh; /* Utilise 100% de la hauteur de vue */
+        margin-top: 0; /* Pas de marge en haut */
         border-radius: 0;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: none; /* Pas d'ombre pour un effet plein écran pur */
         display: flex;
         flex-direction: row; /* Sidebar left, Chat right */
     }
