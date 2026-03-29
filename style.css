@@ -43,11 +43,15 @@ body {
     flex-direction: column;
 }
 
-/* Transitions Screens */
-#app.show-list #list-screen { transform: translateX(0); z-index: 2; }
-#app.show-list #chat-screen { transform: translateX(100%); z-index: 1; }
-#app.show-chat #list-screen { transform: translateX(-100%); z-index: 1; }
-#app.show-chat #chat-screen { transform: translateX(0); z-index: 2; }
+/* Transitions Screens (Mobile only) */
+@media (max-width: 799px) {
+    #app.show-list #list-screen { transform: translateX(0); z-index: 2; }
+    #app.show-list #chat-screen { transform: translateX(100%); z-index: 1; }
+    #app.show-chat #list-screen { transform: translateX(-100%); z-index: 1; }
+    #app.show-chat #chat-screen { transform: translateX(0); z-index: 2; }
+    
+    #back-btn { display: block; }
+}
 
 /* Header WhatsApp */
 .whatsapp-header {
@@ -266,11 +270,43 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
+/* Desktop Split-Pane Layout (800px+) */
 @media (min-width: 800px) {
     #app {
         height: 95vh;
         margin-top: 2.5vh;
-        border-radius: 10px;
+        border-radius: 0;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: row; /* Sidebar left, Chat right */
+    }
+
+    .screen {
+        position: relative;
+        transform: none !important;
+        transition: none;
+    }
+
+    #list-screen {
+        width: 350px;
+        min-width: 300px;
+        border-right: 1px solid #ddd;
+        z-index: 2 !important;
+    }
+
+    #chat-screen {
+        flex: 1;
+        z-index: 2 !important;
+    }
+
+    /* Hide back button on desktop as both screens are visible */
+    #back-btn { display: none; }
+
+    /* Hide chat screen initially on desktop if no chat is selected */
+    #app.show-list #chat-screen {
+        display: none;
+    }
+    #app.show-chat #chat-screen {
+        display: flex;
     }
 }

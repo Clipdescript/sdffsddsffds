@@ -163,7 +163,9 @@ function openChat(peerId) {
         renderMessage(m.text, m.type, m.user);
     });
     
-    app.className = 'show-chat';
+    // Switch UI state
+    app.classList.remove('show-list');
+    app.classList.add('show-chat');
 }
 
 // --- EVENTS ---
@@ -188,7 +190,8 @@ sendBtn.onclick = () => {
 };
 
 backBtn.onclick = () => {
-    app.className = 'show-list';
+    app.classList.remove('show-chat');
+    app.classList.add('show-list');
     currentChatPeerId = null;
     updatePeerListUI();
 };
