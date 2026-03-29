@@ -90,19 +90,57 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.my-id-container {
+.user-config-container {
     padding: 12px 16px;
-    background: #e8f0fe;
+    background: #f0f2f5;
     border-bottom: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+}
+
+.setting-item input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    background: transparent;
+}
+
+.setting-item .material-icons {
+    color: var(--wa-text-muted);
+    font-size: 20px;
+}
+
+#save-username-btn {
+    background: var(--wa-green-light);
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
 }
 
 .id-info {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--wa-green-light);
     font-weight: 500;
+    padding-left: 10px;
 }
 
 .id-label {

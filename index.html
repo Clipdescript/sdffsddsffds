@@ -33,14 +33,16 @@
             </header>
 
             <div id="settings-panel" class="hidden">
-                <div class="setting-item">
-                    <input type="text" id="username-input" placeholder="Votre pseudo">
-                    <button id="save-username-btn">OK</button>
-                </div>
+                <!-- Panneau vide ou supprimé si plus besoin de menu caché -->
             </div>
 
             <div class="chats-container">
-                <div class="my-id-container">
+                <div class="user-config-container">
+                    <div class="setting-item">
+                        <span class="material-icons">account_circle</span>
+                        <input type="text" id="username-input" placeholder="Votre pseudo">
+                        <button id="save-username-btn">OK</button>
+                    </div>
                     <div class="id-info">
                         <span class="id-label">Mon ID :</span>
                         <span id="header-my-id">Chargement...</span>
