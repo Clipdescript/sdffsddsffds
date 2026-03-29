@@ -2,20 +2,20 @@
 const STORAGE_ID_KEY = 'p2p_chat_my_id';
 const STORAGE_MSGS_KEY = 'p2p_chat_messages';
 const STORAGE_PEERS_KEY = 'p2p_chat_peers';
+const STORAGE_USER_KEY = 'p2p_chat_username';
 
-// Initialize PeerJS with persisted ID if available
+// Initialize Username
+let myUsername = localStorage.getItem(STORAGE_USER_KEY) || 'Anonyme';
+
+// Initialize PeerJS with persisted ID
 let myId = localStorage.getItem(STORAGE_ID_KEY);
-
-// If no ID is saved, generate a persistent one
 if (!myId) {
-    myId = 'p2p-' + Math.random().toString(36).substr(2, 9) + '-' + Math.random().toString(36).substr(2, 9);
+    myId = 'p2p-' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem(STORAGE_ID_KEY, myId);
 }
-
-// Always use the same ID
 const peer = new Peer(myId);
 
-let activeConnections = {}; // Track all active connections by peerId
+let activeConnections = {}; 
 let peerList = JSON.parse(localStorage.getItem(STORAGE_PEERS_KEY) || '[]');
 
 // DOM Elements
@@ -28,25 +28,32 @@ const peerListEl = document.getElementById('peer-list');
 const chatMessages = document.getElementById('chat-messages');
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
+const usernameInput = document.getElementById('username-input');
+const saveUsernameBtn = document.getElementById('save-username-btn');
+const myAvatar = document.getElementById('my-avatar');
 
 // --- INITIALIZATION ---
 
-// Load messages from localStorage
+function init() {
+    usernameInput.value = myUsername;
+    myAvatar.innerText = myUsername.charAt(0);
+    loadMessages();
+    updatePeerListUI();
+}
+
 function loadMessages() {
     const savedMsgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
     savedMsgs.forEach(msg => {
-        displayMessage(msg.text, msg.type, false);
+        displayMessage(msg.text, msg.type, msg.user, false);
     });
 }
 
-// Save message to localStorage
-function saveMessage(text, type) {
+function saveMessage(text, type, user) {
     const savedMsgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
-    savedMsgs.push({ text, type, time: Date.now() });
+    savedMsgs.push({ text, type, user, time: Date.now() });
     localStorage.setItem(STORAGE_MSGS_KEY, JSON.stringify(savedMsgs));
 }
 
-// Update Peer List UI
 function updatePeerListUI() {
     peerListEl.innerHTML = '';
     peerList.forEach(pId => {
@@ -54,8 +61,11 @@ function updatePeerListUI() {
         li.className = 'peer-item';
         const isOnline = activeConnections[pId] && activeConnections[pId].open;
         li.innerHTML = `
-            <span>${pId.substring(0, 8)}...</span>
-            <span class="peer-status ${isOnline ? '' : 'offline'}"></span>
+            <div class="peer-avatar">${pId.charAt(0).toUpperCase()}</div>
+            <div class="peer-info">
+                <div class="peer-name">${pId.substring(0, 8)}...</div>
+                <div class="peer-status-text">${isOnline ? 'En ligne' : 'Hors ligne'}</div>
+            </div>
         `;
         peerListEl.appendChild(li);
     });
@@ -64,44 +74,24 @@ function updatePeerListUI() {
 // --- PEER EVENTS ---
 
 peer.on('open', (id) => {
-    myId = id;
-    localStorage.setItem(STORAGE_ID_KEY, id);
     headerMyIdEl.innerText = id.substring(0, 8) + '...';
     statusEl.innerText = 'En ligne';
-    
-    // Attempt to reconnect to previous peers
-    peerList.forEach(pId => {
-        if (!activeConnections[pId]) {
-            connectToPeer(pId);
-        }
-    });
-    
-    updatePeerListUI();
+    peerList.forEach(pId => connectToPeer(pId));
 });
 
-// Incoming connections
 peer.on('connection', (conn) => {
     setupConnection(conn);
 });
 
 peer.on('error', (err) => {
     console.error('Peer error:', err);
-    if (err.type === 'id-taken') {
-        statusEl.innerText = 'ID occupé (veuillez patienter quelques secondes et rafraîchir)';
-    } else if (err.type === 'unavailable-id') {
-        statusEl.innerText = 'ID indisponible';
-    } else if (err.type === 'peer-unavailable') {
-        statusEl.innerText = 'Ami hors ligne';
-    } else {
-        statusEl.innerText = 'Erreur : ' + err.type;
-    }
+    statusEl.innerText = 'Erreur : ' + err.type;
 });
 
 // --- CONNECTION LOGIC ---
 
 function connectToPeer(targetId) {
     if (!targetId || targetId === myId || activeConnections[targetId]) return;
-    
     const conn = peer.connect(targetId);
     setupConnection(conn);
 }
@@ -113,21 +103,16 @@ function setupConnection(conn) {
             peerList.push(conn.peer);
             localStorage.setItem(STORAGE_PEERS_KEY, JSON.stringify(peerList));
         }
-        statusEl.innerText = 'Connecté';
         updatePeerListUI();
     });
 
     conn.on('data', (data) => {
-        displayMessage(data, 'received', true);
+        if (typeof data === 'object' && data.type === 'chat') {
+            displayMessage(data.text, 'received', data.user, true);
+        }
     });
 
     conn.on('close', () => {
-        delete activeConnections[conn.peer];
-        updatePeerListUI();
-    });
-
-    conn.on('error', (err) => {
-        console.error('Connection error:', err);
         delete activeConnections[conn.peer];
         updatePeerListUI();
     });
@@ -135,15 +120,25 @@ function setupConnection(conn) {
 
 // --- UI LOGIC ---
 
-function displayMessage(msg, type, save = true) {
+function displayMessage(msg, type, user, save = true) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `message-wrapper ${type}`;
+    
+    const userLabel = document.createElement('span');
+    userLabel.className = 'msg-username';
+    userLabel.innerText = user || 'Inconnu';
+    
     const div = document.createElement('div');
     div.className = `message ${type}`;
     div.innerText = msg;
-    chatMessages.appendChild(div);
+    
+    wrapper.appendChild(userLabel);
+    wrapper.appendChild(div);
+    chatMessages.appendChild(wrapper);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
     if (save) {
-        saveMessage(msg, type);
+        saveMessage(msg, type, user);
     }
 }
 
@@ -151,21 +146,35 @@ function broadcastMessage() {
     const msg = messageInput.value.trim();
     if (!msg) return;
 
+    const payload = {
+        type: 'chat',
+        text: msg,
+        user: myUsername
+    };
+
     let sent = false;
     Object.values(activeConnections).forEach(conn => {
         if (conn.open) {
-            conn.send(msg);
+            conn.send(payload);
             sent = true;
         }
     });
 
-    if (sent || Object.keys(activeConnections).length === 0) {
-        displayMessage(msg, 'sent', true);
-        messageInput.value = '';
-    }
+    displayMessage(msg, 'sent', myUsername, true);
+    messageInput.value = '';
 }
 
 // --- EVENT LISTENERS ---
+
+saveUsernameBtn.addEventListener('click', () => {
+    const newUsername = usernameInput.value.trim();
+    if (newUsername) {
+        myUsername = newUsername;
+        localStorage.setItem(STORAGE_USER_KEY, myUsername);
+        myAvatar.innerText = myUsername.charAt(0);
+        alert('Pseudo mis à jour !');
+    }
+});
 
 connectBtn.addEventListener('click', () => {
     const targetId = peerIdInput.value.trim();
@@ -180,15 +189,11 @@ messageInput.addEventListener('keypress', (e) => {
 });
 
 headerCopyBtn.addEventListener('click', () => {
-    if (myId) {
-        navigator.clipboard.writeText(myId).then(() => {
-            const originalIcon = headerCopyBtn.innerText;
-            headerCopyBtn.innerText = '✅';
-            setTimeout(() => headerCopyBtn.innerText = originalIcon, 2000);
-        });
-    }
+    navigator.clipboard.writeText(myId).then(() => {
+        const originalIcon = headerCopyBtn.innerText;
+        headerCopyBtn.innerText = 'check';
+        setTimeout(() => headerCopyBtn.innerText = 'content_copy', 2000);
+    });
 });
 
-// Start by loading history
-loadMessages();
-updatePeerListUI();
+init();

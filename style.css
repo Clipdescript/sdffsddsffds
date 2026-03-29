@@ -1,35 +1,34 @@
 :root {
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --bg-color: #f3f4f6;
-    --card-bg: #ffffff;
-    --text-color: #1f2937;
-    --text-muted: #6b7280;
-    --border-color: #e5e7eb;
-    --msg-sent: #2563eb;
-    --msg-received: #e5e7eb;
-    --success: #10b981;
-    --error: #ef4444;
+    --google-blue: #1a73e8;
+    --google-blue-dark: #1557b0;
+    --google-bg: #ffffff;
+    --google-sidebar: #f8f9fa;
+    --google-text: #3c4043;
+    --google-text-secondary: #70757a;
+    --google-sent-bg: #d2e3fc;
+    --google-received-bg: #f1f3f4;
+    --google-border: #dadce0;
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Google Sans', Roboto, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.5;
+    background-color: var(--google-bg);
+    color: var(--google-text);
     height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 #app {
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
     width: 100%;
     height: 100%;
@@ -37,234 +36,286 @@ body {
     flex-direction: column;
 }
 
+/* Header Style Google Messages */
 header {
-    background-color: var(--primary);
-    color: white;
-    padding: 1rem;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 10;
-}
-
-header h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.header-id {
-    font-size: 0.8rem;
-    margin-top: 0.5rem;
-    background: rgba(0,0,0,0.2);
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-#header-my-id {
-    font-family: monospace;
-}
-
-#header-copy-btn {
-    background: none;
-    padding: 0;
-    font-size: 1rem;
-}
-
-#status {
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-    opacity: 0.9;
-}
-
-main {
-    flex: 1;
-    padding: 1rem;
-    overflow-y: hidden;
+    background-color: var(--google-bg);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--google-border);
     display: flex;
     flex-direction: column;
 }
 
-#sidebar {
-    padding: 1rem;
-    margin-bottom: 1rem;
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
-#sidebar h3 {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-muted);
+header h1 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.menu-icon {
+    color: var(--google-text-secondary);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--google-blue);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.id-banner {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--google-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#header-my-id {
+    font-family: monospace;
+    background: var(--google-received-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.copy-icon {
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#status {
+    font-size: 0.7rem;
+    color: #1e8e3e; /* Green for online */
+}
+
+/* Main Content */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+.card {
+    background: white;
+    margin: 8px 16px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--google-border);
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.input-group input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+}
+
+#save-username-btn {
+    background: var(--google-blue);
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+}
+
+/* Sidebar Discussions */
+#sidebar {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    color: var(--google-text-secondary);
 }
 
 #peer-list {
     list-style: none;
-    margin-bottom: 1rem;
 }
 
 .peer-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem;
-    background: var(--bg-color);
-    border-radius: 0.25rem;
-    margin-bottom: 0.25rem;
-    font-size: 0.85rem;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f4;
 }
 
-.peer-status {
-    width: 8px;
-    height: 8px;
+.peer-avatar {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: var(--success);
-}
-
-.peer-status.offline {
-    background: var(--error);
-}
-
-.card {
-    background-color: var(--card-bg);
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
-}
-
-.card h2 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    color: var(--text-muted);
-}
-
-.id-display {
+    background: #e8f0fe;
+    color: var(--google-blue);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    background-color: var(--bg-color);
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--border-color);
-    margin-bottom: 0.5rem;
+    justify-content: center;
+    font-weight: bold;
 }
 
-#my-id {
-    font-family: monospace;
-    font-size: 1.1rem;
-    font-weight: 600;
-    word-break: break-all;
+.peer-info {
+    flex: 1;
 }
 
-#copy-id-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.25rem;
-    padding: 0.25rem;
-    border-radius: 0.25rem;
-}
-
-#copy-id-btn:hover {
-    background-color: rgba(0,0,0,0.05);
-}
-
-.hint {
-    font-size: 0.875rem;
-    color: var(--text-muted);
+.peer-name {
+    font-weight: 500;
+    font-size: 0.95rem;
 }
 
 .connect-form {
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
+    margin-top: 12px;
 }
 
-input {
+.connect-form input {
     flex: 1;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    font-size: 1rem;
+    background: #f1f3f4;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
     outline: none;
 }
 
-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-}
-
-button {
-    background-color: var(--primary);
+.connect-form button {
+    background: var(--google-blue);
     color: white;
     border: none;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
 }
 
-button:hover {
-    background-color: var(--primary-hover);
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* Chat screen styling */
+/* Chat Screen */
 #chat-screen {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    overflow: hidden;
+    background: var(--google-bg);
 }
 
 #chat-messages {
     flex: 1;
+    padding: 16px;
     overflow-y: auto;
-    padding-bottom: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 8px;
+}
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.message-wrapper.sent {
+    align-items: flex-end;
+}
+
+.message-wrapper.received {
+    align-items: flex-start;
+}
+
+.msg-username {
+    font-size: 0.7rem;
+    color: var(--google-text-secondary);
+    margin: 0 4px 2px;
 }
 
 .message {
-    max-width: 80%;
-    padding: 0.75rem 1rem;
-    border-radius: 1rem;
-    font-size: 0.9375rem;
-    position: relative;
-    word-wrap: break-word;
+    max-width: 85%;
+    padding: 10px 16px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-break: break-word;
 }
 
 .message.sent {
-    align-self: flex-end;
-    background-color: var(--msg-sent);
-    color: white;
-    border-bottom-right-radius: 0.25rem;
+    background-color: var(--google-sent-bg);
+    color: #174ea6;
+    border-bottom-right-radius: 4px;
 }
 
 .message.received {
-    align-self: flex-start;
-    background-color: var(--msg-received);
-    color: var(--text-color);
-    border-bottom-left-radius: 0.25rem;
+    background-color: var(--google-received-bg);
+    color: var(--google-text);
+    border-bottom-left-radius: 4px;
 }
 
-.chat-input-area {
+/* Input Area Google Messages */
+.chat-input-container {
+    padding: 12px 16px;
     display: flex;
-    gap: 0.5rem;
-    background-color: var(--card-bg);
-    padding: 1rem;
-    border-top: 1px solid var(--border-color);
-    margin: 0 -1rem -1rem -1rem;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-input-wrapper {
+    flex: 1;
+    background: #f1f3f4;
+    border-radius: 24px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 48px;
+}
+
+.chat-input-wrapper input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+}
+
+.chat-input-wrapper .material-icons {
+    color: var(--google-text-secondary);
+    font-size: 24px;
+}
+
+#send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--google-blue);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
 }
 
 @media (max-width: 480px) {
-    main {
-        padding: 0.75rem;
-    }
-    .card {
-        padding: 1rem;
+    #app {
+        height: 100vh;
     }
 }

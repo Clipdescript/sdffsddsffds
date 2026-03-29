@@ -2,41 +2,65 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Chat - Mobile Friendly</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Messages</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#1a73e8">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
     <div id="app">
         <header>
-            <h1>P2P Chat</h1>
-            <div id="status" class="status-indicator">Initialisation...</div>
-            <div class="header-id">
-                ID: <span id="header-my-id">...</span>
-                <button id="header-copy-btn" title="Copier mon ID">📋</button>
+            <div class="header-top">
+                <span class="material-icons menu-icon">menu</span>
+                <h1>Messages</h1>
+                <div class="user-avatar" id="my-avatar">?</div>
             </div>
+            <div class="id-banner">
+                <span class="id-label">Mon ID :</span>
+                <span id="header-my-id">Chargement...</span>
+                <span class="material-icons copy-icon" id="header-copy-btn">content_copy</span>
+            </div>
+            <div id="status">En ligne</div>
         </header>
 
         <main>
-            <!-- Sidebar for connections -->
-            <section id="sidebar" class="card">
-                <h3>Amis connectés</h3>
-                <ul id="peer-list"></ul>
-                <div class="connect-form">
-                    <input type="text" id="peer-id-input" placeholder="ID de l'ami">
-                    <button id="connect-btn">Connecter</button>
+            <!-- Pseudo/Settings Section -->
+            <section id="settings-bar" class="card">
+                <div class="input-group">
+                    <span class="material-icons">account_circle</span>
+                    <input type="text" id="username-input" placeholder="Votre pseudo...">
+                    <button id="save-username-btn">OK</button>
                 </div>
             </section>
 
-            <!-- Chat screen -->
+            <!-- Connections List -->
+            <section id="sidebar" class="card">
+                <div class="section-header">
+                    <h3>Discussions</h3>
+                    <span class="material-icons">add_comment</span>
+                </div>
+                <ul id="peer-list"></ul>
+                <div class="connect-form">
+                    <input type="text" id="peer-id-input" placeholder="ID de l'ami">
+                    <button id="connect-btn">Démarrer</button>
+                </div>
+            </section>
+
+            <!-- Chat Area -->
             <section id="chat-screen">
                 <div id="chat-messages"></div>
-                <div class="chat-input-area">
-                    <input type="text" id="message-input" placeholder="Écrivez un message...">
-                    <button id="send-btn">Envoyer</button>
+                <div class="chat-input-container">
+                    <div class="chat-input-wrapper">
+                        <span class="material-icons emoji-icon">insert_emoticon</span>
+                        <input type="text" id="message-input" placeholder="Message SMS">
+                        <span class="material-icons attach-icon">add_circle_outline</span>
+                    </div>
+                    <button id="send-btn">
+                        <span class="material-icons">send</span>
+                    </button>
                 </div>
             </section>
         </main>
@@ -46,9 +70,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker enregistré !'))
-                    .catch(err => console.error('Erreur SW:', err));
+                navigator.serviceWorker.register('sw.js');
             });
         }
     </script>
