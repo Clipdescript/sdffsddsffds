@@ -90,10 +90,44 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.setting-item { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
-.setting-item input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
-.setting-item button { background: var(--wa-green-light); color: white; border: none; padding: 8px 15px; border-radius: 5px; }
-.id-info { font-size: 0.8rem; color: var(--wa-text-muted); font-family: monospace; word-break: break-all; }
+.my-id-container {
+    padding: 12px 16px;
+    background: #e8f0fe;
+    border-bottom: 1px solid #ddd;
+}
+
+.id-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--wa-green-light);
+    font-weight: 500;
+}
+
+.id-label {
+    color: var(--wa-text-muted);
+}
+
+#header-my-id {
+    font-family: monospace;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#header-copy-btn {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+#header-copy-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
 
 /* Chats List */
 .chats-container {
