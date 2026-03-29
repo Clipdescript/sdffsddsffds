@@ -1,7 +1,7 @@
 {
-  "name": "WhatsApp P2P",
-  "short_name": "WAP2P",
-  "description": "Chat Peer-to-Peer ultra-rapide et sécurisé au design WhatsApp.",
+  "name": "Messagerie de copain",
+  "short_name": "Copains",
+  "description": "Chat Peer-to-Peer ultra-rapide et sécurisé.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
