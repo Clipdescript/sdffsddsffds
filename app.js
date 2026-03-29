@@ -8,7 +8,12 @@ const STORAGE_USER_KEY = 'p2p_chat_username';
 let myUsername = localStorage.getItem(STORAGE_USER_KEY) || 'Moi';
 let myId = localStorage.getItem(STORAGE_ID_KEY);
 let activeConnections = {}; 
-let peerList = JSON.parse(localStorage.getItem(STORAGE_PEERS_KEY) || '[]');
+let peerList = [];
+try {
+    peerList = JSON.parse(localStorage.getItem(STORAGE_PEERS_KEY) || '[]');
+} catch (e) {
+    peerList = [];
+}
 let currentChatPeerId = null;
 
 // Generate ID if not exists
@@ -18,7 +23,9 @@ if (!myId) {
 }
 
 // Peer Instance
-const peer = new Peer(myId);
+const peer = new Peer(myId, {
+    debug: 2 // Show errors and warnings
+});
 
 // DOM
 const app = document.getElementById('app');
@@ -38,41 +45,67 @@ const peerIdInput = document.getElementById('peer-id-input');
 const connectBtn = document.getElementById('connect-btn');
 const chatPeerName = document.getElementById('chat-peer-name');
 const chatPeerAvatar = document.getElementById('chat-peer-avatar');
+const statusEl = document.getElementById('status');
 
 // --- INIT ---
 
 function init() {
+    console.log('Initialisation de l\'application...');
     usernameInput.value = myUsername;
     headerMyIdEl.innerText = myId;
     updatePeerListUI();
     
     // Peer events
     peer.on('open', (id) => {
-        console.log('Peer ID:', id);
-        // Try reconnecting to all saved peers
-        peerList.forEach(pId => connectToPeer(pId));
+        console.log('Votre Peer ID est :', id);
+        statusEl.innerText = 'En ligne';
+        // Tentative de reconnexion aux pairs enregistrés
+        peerList.forEach(pId => {
+            if (pId !== myId) connectToPeer(pId);
+        });
     });
 
     peer.on('connection', (conn) => {
+        console.log('Nouvelle connexion entrante de :', conn.peer);
         setupConnection(conn);
     });
 
     peer.on('error', (err) => {
-        console.error('Peer error:', err);
+        console.error('Erreur PeerJS :', err.type, err);
+        if (err.type === 'peer-unavailable') {
+            console.warn('Le pair demandé n\'existe pas ou est hors ligne.');
+        }
+    });
+
+    peer.on('disconnected', () => {
+        console.warn('Déconnecté du serveur de signalisation. Tentative de reconnexion...');
+        peer.reconnect();
     });
 }
 
 // --- LOGIC ---
 
 function connectToPeer(targetId) {
-    if (!targetId || targetId === myId || activeConnections[targetId]) return;
-    const conn = peer.connect(targetId);
+    if (!targetId || targetId === myId) return;
+    
+    // Si déjà connecté et ouvert, on ne fait rien
+    if (activeConnections[targetId] && activeConnections[targetId].open) {
+        console.log('Déjà connecté à', targetId);
+        return;
+    }
+
+    console.log('Tentative de connexion à :', targetId);
+    const conn = peer.connect(targetId, {
+        reliable: true
+    });
     setupConnection(conn);
 }
 
 function setupConnection(conn) {
     conn.on('open', () => {
+        console.log('Connexion ouverte avec :', conn.peer);
         activeConnections[conn.peer] = conn;
+        
         if (!peerList.includes(conn.peer)) {
             peerList.push(conn.peer);
             localStorage.setItem(STORAGE_PEERS_KEY, JSON.stringify(peerList));
@@ -81,26 +114,41 @@ function setupConnection(conn) {
     });
 
     conn.on('data', (data) => {
-        if (data.type === 'chat') {
+        console.log('Données reçues de', conn.peer, ':', data);
+        if (data && data.type === 'chat') {
             saveAndDisplayMessage(data.text, 'received', data.user, conn.peer);
         }
     });
 
     conn.on('close', () => {
+        console.log('Connexion fermée avec :', conn.peer);
+        delete activeConnections[conn.peer];
+        updatePeerListUI();
+    });
+
+    conn.on('error', (err) => {
+        console.error('Erreur de connexion avec', conn.peer, ':', err);
         delete activeConnections[conn.peer];
         updatePeerListUI();
     });
 }
 
 function saveAndDisplayMessage(text, type, user, peerId) {
-    const msgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
-    msgs.push({ text, type, user, peerId, time: Date.now() });
+    let msgs = [];
+    try {
+        msgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
+    } catch (e) {
+        msgs = [];
+    }
+    
+    const newMsg = { text, type, user, peerId, time: Date.now() };
+    msgs.push(newMsg);
     localStorage.setItem(STORAGE_MSGS_KEY, JSON.stringify(msgs));
     
     if (currentChatPeerId === peerId) {
         renderMessage(text, type, user);
     }
-    updatePeerListUI(); // To show last message or update status
+    updatePeerListUI();
 }
 
 function renderMessage(text, type, user) {
@@ -110,7 +158,7 @@ function renderMessage(text, type, user) {
     if (type === 'received') {
         const userLabel = document.createElement('span');
         userLabel.className = 'msg-user';
-        userLabel.innerText = user;
+        userLabel.innerText = user || 'Ami';
         wrapper.appendChild(userLabel);
     }
     
@@ -125,10 +173,18 @@ function renderMessage(text, type, user) {
 
 function updatePeerListUI() {
     peerListEl.innerHTML = '';
-    const msgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
+    let msgs = [];
+    try {
+        msgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
+    } catch (e) {
+        msgs = [];
+    }
     
     peerList.forEach(pId => {
-        const lastMsg = msgs.filter(m => m.peerId === pId).pop();
+        if (pId === myId) return;
+        
+        const peerMsgs = msgs.filter(m => m.peerId === pId);
+        const lastMsg = peerMsgs[peerMsgs.length - 1];
         const isOnline = activeConnections[pId] && activeConnections[pId].open;
         
         const li = document.createElement('li');
@@ -152,18 +208,24 @@ function updatePeerListUI() {
 }
 
 function openChat(peerId) {
+    console.log('Ouverture du chat avec :', peerId);
     currentChatPeerId = peerId;
     chatPeerName.innerText = peerId.substring(0, 15) + '...';
     chatPeerAvatar.innerText = peerId.charAt(0).toUpperCase();
     chatPeerAvatar.style.backgroundColor = stringToColor(peerId);
     
     chatMessages.innerHTML = '';
-    const msgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
+    let msgs = [];
+    try {
+        msgs = JSON.parse(localStorage.getItem(STORAGE_MSGS_KEY) || '[]');
+    } catch (e) {
+        msgs = [];
+    }
+    
     msgs.filter(m => m.peerId === peerId).forEach(m => {
         renderMessage(m.text, m.type, m.user);
     });
     
-    // Switch UI state
     app.classList.remove('show-list');
     app.classList.add('show-chat');
 }
@@ -180,12 +242,15 @@ sendBtn.onclick = () => {
     
     const conn = activeConnections[currentChatPeerId];
     if (conn && conn.open) {
+        console.log('Envoi du message à', currentChatPeerId, ':', text);
         conn.send({ type: 'chat', text, user: myUsername });
         saveAndDisplayMessage(text, 'sent', myUsername, currentChatPeerId);
         messageInput.value = '';
         sendIcon.innerText = 'mic';
     } else {
-        alert("L'ami est hors ligne");
+        console.warn('Impossible d\'envoyer le message : connexion fermée avec', currentChatPeerId);
+        alert("L'ami est hors ligne. Tentative de reconnexion...");
+        connectToPeer(currentChatPeerId);
     }
 };
 
@@ -202,12 +267,14 @@ saveUsernameBtn.onclick = () => {
     myUsername = usernameInput.value.trim() || 'Moi';
     localStorage.setItem(STORAGE_USER_KEY, myUsername);
     settingsPanel.classList.add('hidden');
+    console.log('Pseudo mis à jour :', myUsername);
 };
 
 headerCopyBtn.onclick = () => {
     navigator.clipboard.writeText(myId);
+    const originalIcon = headerCopyBtn.innerText;
     headerCopyBtn.innerText = 'done';
-    setTimeout(() => headerCopyBtn.innerText = 'content_copy', 2000);
+    setTimeout(() => headerCopyBtn.innerText = originalIcon, 2000);
 };
 
 connectBtn.onclick = () => {
