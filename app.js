@@ -5,7 +5,15 @@ const STORAGE_PEERS_KEY = 'p2p_chat_peers';
 
 // Initialize PeerJS with persisted ID if available
 let myId = localStorage.getItem(STORAGE_ID_KEY);
-const peer = new Peer(myId); // Peer will use myId if provided, else generate one
+
+// If no ID is saved, generate a persistent one
+if (!myId) {
+    myId = 'p2p-' + Math.random().toString(36).substr(2, 9) + '-' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem(STORAGE_ID_KEY, myId);
+}
+
+// Always use the same ID
+const peer = new Peer(myId);
 
 let activeConnections = {}; // Track all active connections by peerId
 let peerList = JSON.parse(localStorage.getItem(STORAGE_PEERS_KEY) || '[]');
@@ -78,7 +86,15 @@ peer.on('connection', (conn) => {
 
 peer.on('error', (err) => {
     console.error('Peer error:', err);
-    statusEl.innerText = 'Erreur : ' + err.type;
+    if (err.type === 'id-taken') {
+        statusEl.innerText = 'ID occupé (veuillez patienter quelques secondes et rafraîchir)';
+    } else if (err.type === 'unavailable-id') {
+        statusEl.innerText = 'ID indisponible';
+    } else if (err.type === 'peer-unavailable') {
+        statusEl.innerText = 'Ami hors ligne';
+    } else {
+        statusEl.innerText = 'Erreur : ' + err.type;
+    }
 });
 
 // --- CONNECTION LOGIC ---
