@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Chat - Mobile Friendly</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>P2P Chat</h1>
+            <div id="status" class="status-indicator">Initialisation...</div>
+        </header>
+
+        <main>
+            <!-- Welcome screen -->
+            <section id="welcome-screen">
+                <div class="card">
+                    <h2>Votre ID</h2>
+                    <div class="id-display">
+                        <span id="my-id">Génération...</span>
+                        <button id="copy-id-btn" title="Copier l'ID">📋</button>
+                    </div>
+                    <p class="hint">Partagez cet ID avec votre ami pour qu'il puisse se connecter.</p>
+                </div>
+
+                <div class="card">
+                    <h2>Se connecter</h2>
+                    <div class="connect-form">
+                        <input type="text" id="peer-id-input" placeholder="ID de l'ami">
+                        <button id="connect-btn">Rejoindre</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat screen -->
+            <section id="chat-screen" class="hidden">
+                <div id="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="message-input" placeholder="Écrivez un message...">
+                    <button id="send-btn">Envoyer</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker enregistré !'))
+                    .catch(err => console.error('Erreur SW:', err));
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "P2P Mobile Chat",
+  "short_name": "P2PChat",
+  "description": "Un chat Peer-to-Peer sécurisé et rapide pour mobile.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2590/2590812.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
